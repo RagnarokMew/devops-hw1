@@ -1,0 +1,45 @@
+---
+  - name: Deploy a python webserver on a remote host (local Docker container)
+    hosts: webservers
+    connection: ssh 
+    tasks:
+      - block:
+          - name: Install git
+            community.general.apk:
+              name: git
+              state: present
+          
+          - name: Clone website repository
+            git:
+              repo: https://github.com/RagnarokMew/Landing-Page.git
+              clone: true
+              update: true 
+              force: yes
+              dest: /root/server
+
+        name: Set up webserver repository
+
+      - block:
+        - name: Install nginx
+          community.general.apk:
+            name: nginx
+            state: present
+
+        - name: Start nginx
+          shell: nginx &
+
+        - name: Change nginx user
+          shell: sed -i 's/user nginx;/user root;/' /etc/nginx/nginx.conf
+          notify: 
+            - restart nginx
+
+        - name: Copy nginx config
+          shell: cp /root/server/nginx.conf /etc/nginx/http.d/default.conf
+          notify: 
+            - restart nginx
+
+        name: Set up nginx
+
+    handlers:
+      - name: restart nginx
+        command: nginx -s reload
