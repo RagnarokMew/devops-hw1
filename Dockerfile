@@ -13,7 +13,8 @@ RUN ssh-keygen -A
 RUN sed 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config > /etc/ssh/tmp \
  && mv /etc/ssh/tmp /etc/ssh/sshd_config
 
-RUN apk add nginx
+# Replace ./id_ed25519.pub with the path to your public key
+COPY ./id_ed25519.pub /root/.ssh/authorized_keys
 
 #############################
 ## Installing Ansible deps ##
@@ -21,8 +22,14 @@ RUN apk add nginx
 
 RUN apk add python3
 
-RUN echo "root:test" | chpasswd
+###################
+## Exposed ports ##
+###################
 
 EXPOSE 80 22
+
+###################
+## Starting sshd ## 
+###################
 
 CMD [ "/usr/sbin/sshd", "-D"]
